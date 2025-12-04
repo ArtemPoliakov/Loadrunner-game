@@ -1,6 +1,6 @@
 import math
-
 import pygame
+import json
 
 BLANK = "_"
 GROUND = "#"
@@ -64,3 +64,23 @@ def load_level_from_strings(level_blueprint):
     for row_str in level_blueprint:
         level_data.append(list(row_str))
     return level_data
+
+
+def load_all_levels_from_file(filepath):
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            blueprints = json.load(f)
+
+        # Валідація: перевіряємо, що це список
+        if not isinstance(blueprints, list):
+            print(f"ПОМИЛКА: JSON файл має містити список рівнів, отримано {type(blueprints)}")
+            return []
+
+        return blueprints
+
+    except FileNotFoundError:
+        print(f"ПОМИЛКА: Файл рівнів '{filepath}' не знайдено!")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"ПОМИЛКА: Не вдалося розпарсити JSON: {e}")
+        return []
