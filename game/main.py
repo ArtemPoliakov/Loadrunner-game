@@ -2,6 +2,7 @@ import pygame
 from sys import exit
 from game.utils import draw_map, get_cur_tile, get_tile_at, load_level_from_strings, load_all_levels_from_file
 import os
+import pickle
 
 # CONSTANTS
 TILE_SIZE = 24
@@ -41,7 +42,8 @@ pygame.display.set_caption('Lode Runner')
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 20)
 ui_font = pygame.font.SysFont("Consolas", 28, bold=True)
-pause_font = pygame.font.SysFont("Consolas", 60, bold=True)  # Шрифт для напису PAUSED
+pause_font = pygame.font.SysFont("Consolas", 60, bold=True)
+msg_font = pygame.font.SysFont("Consolas", 20, bold=True)
 
 # ASSETS
 tile_images = {}
@@ -85,13 +87,14 @@ win_time = 0
 start_time = 0
 active_holes = []
 
-# --- Score & Pause State ---
 high_scores = {}
 show_scores_popup = False
-is_paused = False  # Чи активна пауза зараз
-pause_start_time = 0  # Коли почалась поточна пауза
-total_pause_duration = 0  # Скільки часу сумарно ми простояли на паузі
+is_paused = False
+pause_start_time = 0
+total_pause_duration = 0
 
+system_message = ""
+system_message_time = 0
 
 # HELPER FUNCTIONS
 
@@ -139,7 +142,7 @@ def get_top_scores(level_idx):
         return []
 
     times = sorted(high_scores[level_idx])
-    # [SLICES]
+    # [SLICE]
     return times[:3]
 
 
@@ -158,6 +161,109 @@ def is_on_ladder_tile(current_data, x_pos, y_pos):
     return get_tile_at(current_data, row, col) == LADDER
 
 
+def show_message(text):
+    global system_message, system_message_time
+    system_message = text
+    system_message_time = pygame.time.get_ticks()
+
+
+def quick_save_game():
+    current_ticks = pygame.time.get_ticks()
+    if is_paused:
+        elapsed_time = pause_start_time - start_ticks - total_pause_duration
+    else:
+        elapsed_time = current_ticks - start_ticks - total_pause_duration
+
+    holes_data = []
+    for h in active_holes:
+        offset = h['time'] - current_ticks
+        holes_data.append({'row': h['row'], 'col': h['col'], 'offset': offset})
+
+    save_data = (
+        current_level_idx,
+        current_level_data,
+        sprite_x_pos,
+        sprite_y_pos,
+        coins_collected,
+        total_coins,
+        elapsed_time,
+        holes_data
+    )
+
+    filename = f"saves/quicksave_{current_level_idx}.dat"
+
+    try:
+        with open(filename, "wb") as f:
+            pickle.dump(save_data, f)
+        show_message(f"Lvl {current_level_idx+1} Saved (F1)")
+    except Exception as e:
+        print(f"Save Error: {e}")
+
+
+def quick_load_game():
+    global current_level_idx, current_level_data, sprite_x_pos, sprite_y_pos, target_x, target_y, is_jumping
+    global coins_collected, total_coins, start_ticks, active_holes
+    global is_paused, total_pause_duration, pause_start_time, is_animating, jump_peak_time
+    global game_finished, win_time
+
+    filename = f"saves/quicksave_{current_level_idx}.dat"
+
+    if not os.path.exists(filename):
+        show_message("No Save for this Level!")
+        return
+
+    try:
+        with open(filename, "rb") as f:
+            save_data = pickle.load(f)
+
+        (
+            saved_lvl_idx,
+            saved_map,
+            saved_x,
+            saved_y,
+            saved_coins,
+            saved_total_coins,
+            saved_elapsed,
+            saved_holes
+        ) = save_data
+
+        if saved_lvl_idx != current_level_idx:
+            show_message("Save file mismatch!")
+            return
+
+        current_level_data = saved_map
+        sprite_x_pos = saved_x
+        sprite_y_pos = saved_y
+        coins_collected = saved_coins
+        total_coins = saved_total_coins
+
+        target_x = sprite_x_pos
+        target_y = sprite_y_pos
+        is_animating = False
+        is_jumping = False
+        jump_peak_time = None
+
+        game_finished = False
+        win_time = 0
+
+        current_ticks = pygame.time.get_ticks()
+        start_ticks = current_ticks - saved_elapsed
+
+        is_paused = False
+        total_pause_duration = 0
+        pause_start_time = 0
+
+        active_holes = []
+        for h in saved_holes:
+            new_time = current_ticks + h['offset']
+            active_holes.append({'row': h['row'], 'col': h['col'], 'time': new_time})
+
+        show_message(f"Lvl {current_level_idx+1} Loaded (F2)")
+
+    except Exception as e:
+        show_message("Load Failed!")
+        print(f"Load Error: {e}")
+
 # STATE FUNCTIONS
 
 def reset_level(level_idx):
@@ -169,7 +275,6 @@ def reset_level(level_idx):
         global coins_collected, start_ticks, game_finished, active_holes, jump_peak_time
         global is_paused, total_pause_duration, pause_start_time
 
-        # Безпечне завантаження
         safe_idx = level_idx if 0 <= level_idx < len(LEVEL_BLUEPRINTS) else 0
         current_level_data = load_level_from_strings(LEVEL_BLUEPRINTS[safe_idx])
 
@@ -187,7 +292,6 @@ def reset_level(level_idx):
 
         coins_collected = 0
 
-        # Скидання пауз
         is_paused = False
         total_pause_duration = 0
         pause_start_time = 0
@@ -220,30 +324,37 @@ next_btn_rect = pygame.Rect(180, GAME_HEIGHT + 15, 30, 30)
 while True:
     current_time = pygame.time.get_ticks()
 
-    # EVENT HANDLING
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
 
         # --- KEYBOARD (ESC - Pause) ---
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            if show_scores_popup:
-                # Якщо відкрито вікно рекордів, закриваємо його і знімаємо паузу
-                show_scores_popup = False
-                is_paused = False
-                if pause_start_time != 0:
-                    total_pause_duration += current_time - pause_start_time
-                    pause_start_time = 0
-            else:
-                # Якщо просто гра, перемикаємо паузу
-                is_paused = not is_paused
-                if is_paused:
-                    pause_start_time = current_time
-                else:
+        if event.type == pygame.KEYDOWN:
+            # 1. Pause (ESC)
+            if event.key == pygame.K_ESCAPE:
+                if show_scores_popup:
+                    show_scores_popup = False
+                    is_paused = False
                     if pause_start_time != 0:
                         total_pause_duration += current_time - pause_start_time
                         pause_start_time = 0
+                else:
+                    is_paused = not is_paused
+                    if is_paused:
+                        pause_start_time = current_time
+                    else:
+                        if pause_start_time != 0:
+                            total_pause_duration += current_time - pause_start_time
+                            pause_start_time = 0
+
+            # 2. Quick Save (F1)
+            elif event.key == pygame.K_F1 and not show_scores_popup and not game_finished:
+                quick_save_game()
+
+            # 3. Quick Load (F2)
+            elif event.key == pygame.K_F2 and not show_scores_popup:
+                quick_load_game()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
@@ -253,7 +364,7 @@ while True:
                 close_btn_rect = pygame.Rect(POPUP_X + POPUP_WIDTH - 30, POPUP_Y + 5, 25, 25)
                 if close_btn_rect.collidepoint(mouse_pos):
                     show_scores_popup = False
-                    is_paused = False  # Знімаємо паузу при закритті
+                    is_paused = False
                     if pause_start_time != 0:
                         total_pause_duration += current_time - pause_start_time
                         pause_start_time = 0
@@ -265,7 +376,6 @@ while True:
 
                 if record_rect.collidepoint(mouse_pos):
                     show_scores_popup = True
-                    # Автоматично ставимо на паузу
                     if not is_paused:
                         is_paused = True
                         pause_start_time = current_time
@@ -277,7 +387,7 @@ while True:
                     if current_level_idx < len(LEVEL_BLUEPRINTS) - 1: current_level_idx += 1; reset_level(
                         current_level_idx)
 
-                # В) Логіка копання (Тільки якщо не на паузі)
+                # В) Логіка копання
                 elif not is_paused and event.button == 1 and mouse_pos[1] < GAME_HEIGHT and not game_finished:
                     mx, my = mouse_pos
                     click_col, click_row = mx // TILE_SIZE, my // TILE_SIZE
@@ -288,7 +398,7 @@ while True:
                             current_level_data[click_row][click_col] = BLANK
                             active_holes.append({'row': click_row, 'col': click_col, 'time': current_time})
 
-        # KEYBOARD INPUT (WASD / QE) - Тільки якщо не на паузі
+        # KEYBOARD INPUT (WASD / QE)
         if not is_paused and not show_scores_popup:
             if event.type == pygame.KEYDOWN and not is_animating and jump_peak_time is None:
                 row, col = get_cur_tile(sprite_x_pos, sprite_y_pos, TILE_SIZE)
@@ -314,7 +424,7 @@ while True:
                     new_col = col + (-1 if event.key == pygame.K_a else 1)
                     tile_next = get_tile_at(current_level_data, row, new_col)
 
-                    if (0 <= new_col < MAP_WIDTH) and tile_next != GROUND:
+                    if (0 <= new_col < MAP_WIDTH) and tile_next != GROUND:  #<<
                         dx = (new_col - col) * TILE_SIZE
 
                 # JUMP & JUMP-ROLL LOGIC
@@ -351,7 +461,6 @@ while True:
 
     # 2. PHYSICS & UPDATES
 
-    # [PAUSE] Виконуємо фізику тільки якщо не на паузі
     if not is_paused:
 
         # Hole Regen
@@ -377,20 +486,18 @@ while True:
                     is_jumping = False
                     jump_peak_time = current_time
 
-                    # Jump Hang Logic
+        # Jump Hang Logic
         elif jump_peak_time is not None:
             if current_time - jump_peak_time > JUMP_HANG_TIME:
                 jump_peak_time = None
 
         # Gravity
         else:
-            row, col = get_cur_tile(sprite_x_pos, sprite_y_pos, TILE_SIZE)
-            curr_tile = get_tile_at(current_level_data, row, col)
-            tile_below = get_tile_at(current_level_data, row + 1, col)
-
             is_aligned = is_aligned_to_grid(sprite_y_pos)
-
             if is_aligned:
+                row, col = get_cur_tile(sprite_x_pos, sprite_y_pos, TILE_SIZE)
+                curr_tile = get_tile_at(current_level_data, row, col)
+                tile_below = get_tile_at(current_level_data, row + 1, col)
                 should_fall = (curr_tile != LADDER) and (tile_below != GROUND) and (tile_below != LADDER)
                 if should_fall:
                     sprite_y_pos += FALL_SPEED
@@ -414,17 +521,14 @@ while True:
             coins_collected += 1
             if coins_collected >= total_coins and not game_finished:
                 game_finished = True
-                # Віднімаємо час пауз
                 win_time = current_time - start_ticks - total_pause_duration
                 save_score(current_level_idx, win_time)
 
     # UI Updates
 
-    # Розрахунок часу з урахуванням паузи
     if game_finished:
         display_time_ms = win_time
     else:
-        # Якщо пауза - час "заморожено" на момент початку паузи
         if is_paused:
             display_time_ms = pause_start_time - start_ticks - total_pause_duration
         else:
@@ -461,10 +565,16 @@ while True:
     score_color = (255, 255, 100) if not show_scores_popup else (100, 100, 100)
     screen.blit(font.render(record_str, True, score_color), (RECORD_TEXT_X, RECORD_TEXT_Y))
 
-    # [PAUSE OVERLAY] Якщо пауза є, але вікна немає - малюємо "PAUSED"
+    # [MESSAGE OVERLAY] Повідомлення про збереження/завантаження
+    if current_time - system_message_time < 2000 and system_message:
+        msg_surf = msg_font.render(system_message, True, (0, 255, 0))
+        msg_rect = msg_surf.get_rect(topright=(SCREEN_WIDTH - 10, 10))
+        screen.blit(msg_surf, msg_rect)
+
+    # [PAUSE OVERLAY]
     if is_paused and not show_scores_popup:
         overlay = pygame.Surface((SCREEN_WIDTH, GAME_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 128))  # Напівпрозорий чорний
+        overlay.fill((0, 0, 0, 128))
         screen.blit(overlay, (0, 0))
 
         pause_surf = pause_font.render("PAUSED", True, (255, 255, 255))

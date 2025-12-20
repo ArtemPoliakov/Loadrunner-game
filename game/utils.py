@@ -71,7 +71,6 @@ def load_all_levels_from_file(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             blueprints = json.load(f)
 
-        # Валідація: перевіряємо, що це список
         if not isinstance(blueprints, list):
             print(f"ПОМИЛКА: JSON файл має містити список рівнів, отримано {type(blueprints)}")
             return []
