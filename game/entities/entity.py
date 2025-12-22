@@ -9,12 +9,7 @@ class Entity(ABC, pygame.sprite.Sprite):
         self._x = x
         self._y = y
 
-        if image_path:
-            self.image = pygame.image.load(image_path).convert_alpha()
-        else:
-            self.image = pygame.Surface((24, 24))
-            self.image.fill((255, 0, 0))
-
+        self.image = pygame.Surface((24, 24))
         self.rect = self.image.get_rect(topleft=(x, y))
 
     @property

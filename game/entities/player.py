@@ -1,21 +1,24 @@
 import pygame
-import os  # Додаємо імпорт
+import os
 from typing import Optional
 from game.entities.entity import Entity
 from game.config import *
 from game.entities.map import GameMap
+from game.utils import load_image_asset
 
 
 class Player(Entity):
     def __init__(self, x: float, y: float):
-        sprite_path = os.path.join(ASSETS_DIR, 'sprite.png')
+        super().__init__(x, y)
 
-        try:
-            super().__init__(x, y, sprite_path)
-            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-        except Exception as e:
-            print(f"Player sprite error: {e}")
-            super().__init__(x, y)
+        sprite_path = os.path.join(ASSETS_DIR, 'sprite.png')
+        original_img = load_image_asset(sprite_path, scale=(TILE_SIZE, TILE_SIZE))
+
+        self.image_right = original_img
+        self.image_left = pygame.transform.flip(original_img, True, False)
+
+        self.image = self.image_right
+        self.facing_right = True
 
         self.target_x = x
         self.target_y = y
@@ -38,7 +41,6 @@ class Player(Entity):
         self.is_animating = False
         self.is_jumping = False
         self.jump_peak_time = None
-
 
     def _get_grid_pos(self):
         cx = self.x + TILE_SIZE / 2
@@ -73,6 +75,16 @@ class Player(Entity):
 
         on_stable = self._on_solid_ground(map_obj)
         on_ladder = self._on_ladder(map_obj)
+
+
+        if keys[pygame.K_a] or keys[pygame.K_q]:
+            if self.facing_right:
+                self.facing_right = False
+                self.image = self.image_left
+        elif keys[pygame.K_d] or keys[pygame.K_e]:
+            if not self.facing_right:
+                self.facing_right = True
+                self.image = self.image_right
 
         can_climb = (curr_tile == LADDER) or (on_stable and tile_below == LADDER)
 
