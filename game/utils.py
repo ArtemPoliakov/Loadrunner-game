@@ -1,85 +1,50 @@
-import math
+import time
+from functools import wraps
+
 import pygame
-import json
+import os
 
-BLANK = "_"
-GROUND = "#"
-LADDER = "^"
-COIN = "$"
+def log_execution(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"[LOG] {func.__name__} executed in {end - start:.4f} seconds")
+        return result
 
-
-def draw_map(screen, map_data, surface_dict, tile_size, /, *, show_start=False):
-    for i in range(len(map_data)):
-        row = map_data[i]
-        for j in range(len(row)):
-            tile_char = row[j]
-            if tile_char == BLANK or tile_char not in surface_dict:
-                continue
-
-            cell = surface_dict[tile_char]
-            cell_rect = cell.get_rect(topleft=(tile_size * j, tile_size * i))
-            screen.blit(cell, cell_rect)
-    else:
-        if show_start:
-            screen_w, screen_h = screen.get_size()
-            center_x, center_y = screen_w // 2, screen_h // 2
-
-            panel_bg_color = (30, 30, 30)
-            border_color = (255, 215, 0)
-            text_color = (255, 255, 255)
-
-            panel_w, panel_h = 200, 80
-            panel_rect = pygame.Rect(0, 0, panel_w, panel_h)
-            panel_rect.center = (center_x, center_y)
-
-            pygame.draw.rect(screen, panel_bg_color, panel_rect)
-            pygame.draw.rect(screen, border_color, panel_rect, 3)
-
-            font = pygame.font.SysFont("Consolas", 40, bold=True)
-            text_surf = font.render("START", True, text_color)
-            text_rect = text_surf.get_rect(center=panel_rect.center)
-
-            screen.blit(text_surf, text_rect)
-
-            pygame.display.flip()
-            pygame.time.delay(1000)
-
-def get_cur_tile(x_pos, y_pos, tile_size):
-    row = math.floor((y_pos - 1) / tile_size)
-    col = math.floor(x_pos / tile_size)
-    return row, col
+    return wrapper
 
 
-def get_tile_at(map_data, row, col):
-    if row < 0 or row >= len(map_data):
-        return GROUND
-    current_row = map_data[row]
-    if not current_row or col < 0 or col >= len(current_row):
-        return GROUND
-    return current_row[col]
+def load_image_asset(path, scale=None, auto_crop=True):
+    if not os.path.exists(path):
+        print(f"Error: Image {path} not found!")
+        surf = pygame.Surface((24, 24))
+        surf.fill((255, 0, 255))
+        return surf
 
-
-def load_level_from_strings(level_blueprint):
-    level_data = []
-    for row_str in level_blueprint:
-        level_data.append(list(row_str))
-    return level_data
-
-
-def load_all_levels_from_file(filepath):
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            blueprints = json.load(f)
+        image = pygame.image.load(path).convert_alpha()
+    except pygame.error as e:
+        print(f"Pygame Error loading {path}: {e}")
+        return pygame.Surface((24, 24))
 
-        if not isinstance(blueprints, list):
-            print(f"ПОМИЛКА: JSON файл має містити список рівнів, отримано {type(blueprints)}")
-            return []
+    color_at_00 = image.get_at((0, 0))
+    if color_at_00[3] != 0:
+        image.set_colorkey(color_at_00)
+        final_image = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+        final_image.blit(image, (0, 0))
+        image = final_image
 
-        return blueprints
+    if auto_crop:
+        mask = pygame.mask.from_surface(image)
+        rects = mask.get_bounding_rects()
+        if rects:
+            bbox = rects[0].unionall(rects[1:])
+            if bbox.width > 0 and bbox.height > 0:
+                image = image.subsurface(bbox).copy()
 
-    except FileNotFoundError:
-        print(f"ПОМИЛКА: Файл рівнів '{filepath}' не знайдено!")
-        return []
-    except json.JSONDecodeError as e:
-        print(f"ПОМИЛКА: Не вдалося розпарсити JSON: {e}")
-        return []
+    if scale:
+        image = pygame.transform.scale(image, scale)
+
+    return image

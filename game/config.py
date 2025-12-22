@@ -1,0 +1,52 @@
+import os
+
+# PATHS
+GAME_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(GAME_DIR)
+
+ASSETS_DIR = os.path.join(GAME_DIR, 'assets')
+SAVES_DIR = os.path.join(GAME_DIR, 'saves')
+LEVELS_FILE = os.path.join(GAME_DIR, 'levels.json')
+SCORES_FILE = os.path.join(GAME_DIR, 'scores.txt')
+
+# MAP CONSTANTS
+TILE_SIZE = 24
+MAP_WIDTH = 35
+MAP_HEIGHT = 20
+
+# TILE TYPES
+BLANK = "_"
+GROUND = "#"
+LADDER = "^"
+COIN = "$"
+
+# SCREEN
+SCREEN_WIDTH = 840
+GAME_HEIGHT = 480
+PANEL_HEIGHT = 60
+TOTAL_HEIGHT = GAME_HEIGHT + PANEL_HEIGHT
+FPS = 60
+
+# COLORS
+COLOR_BG = (20, 20, 40)
+COLOR_PANEL = (30, 30, 30)
+COLOR_TEXT = (255, 255, 255)
+COLOR_GOLD = (255, 215, 0)
+
+# GAMEPLAY
+FALL_SPEED = 2.0
+ANIMATION_SPEED = 3.0
+HOLE_DURATION = 4000.0
+JUMP_HANG_TIME = 250.0
+
+# FIREBALL
+FIREBALL_IMG = 'fireball.png'
+EXPLOSION_IMG = 'explosion.png'
+
+FIREBALL_SPEED = 6.0
+EXPLOSION_DURATION = 500
+EXPLOSION_RADIUS_TILES = 0.6
+
+
+
+TOOL_ENEMY = "ENEMY"
