@@ -363,7 +363,7 @@ class GameApp:
 
     def _handle_digging(self, mx, my):
         grid_c, grid_r = int(mx // TILE_SIZE), int(my // TILE_SIZE)
-        player_r, player_c = self.player._get_grid_pos()
+        player_r, player_c = self.player.row, self.player.col
         if abs(grid_r - player_r) <= 1 and abs(grid_c - player_c) <= 1:
             self.map.dig_hole(grid_r, grid_c)
 
@@ -394,7 +394,7 @@ class GameApp:
                 if exp.is_finished:
                     self.explosions.remove(exp)
 
-            player_grid_pos = self.player._get_grid_pos()
+            player_grid_pos = self.player.row, self.player.col
             for enemy in self.enemies:
                 enemy.update(dt, self.map, player_grid_pos)
 

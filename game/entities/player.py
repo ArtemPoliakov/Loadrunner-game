@@ -5,7 +5,7 @@ from game.entities.entity import Entity
 from game.config import *
 from game.entities.map import GameMap
 from game.utils import load_image_asset
-
+from game.enums import Direction, DIR_OFFSETS
 
 class Player(Entity):
     def __init__(self, x: float, y: float):
@@ -32,6 +32,15 @@ class Player(Entity):
     def coins(self) -> int:
         return self._coins_collected
 
+    # REFACTORED (property для row, col)
+    @property
+    def row(self) -> int:
+        return int((self.y + TILE_SIZE / 2) // TILE_SIZE)
+
+    @property
+    def col(self) -> int:
+        return int((self.x + TILE_SIZE / 2) // TILE_SIZE)
+
     def add_coin(self):
         self._coins_collected += 1
 
@@ -42,32 +51,29 @@ class Player(Entity):
         self.is_jumping = False
         self.jump_peak_time = None
 
-    def _get_grid_pos(self):
-        cx = self.x + TILE_SIZE / 2
-        cy = self.y + TILE_SIZE / 2
-        col = int(cx // TILE_SIZE)
-        row = int(cy // TILE_SIZE)
-        return row, col
-
     def _is_aligned_y(self) -> bool:
         return abs(self.y % TILE_SIZE) < 0.1
 
+    # REFACTORED (property для row, col)
+
     def _on_solid_ground(self, map_obj: GameMap) -> bool:
-        row, col = self._get_grid_pos()
+        row, col = self.row, self.col
         tile_below = map_obj.get_tile(row + 1, col)
         return self._is_aligned_y() and tile_below in [GROUND, LADDER]
 
     def _on_ladder(self, map_obj: GameMap) -> bool:
-        row, col = self._get_grid_pos()
+        row, col = self.row, self.col
         current_tile = map_obj.get_tile(row, col)
         return current_tile == LADDER
 
+
+    # REFACTORED (Player.handleinput → dict, dict, dx, dy (rewrite))
     def handle_input(self, keys, map_obj: GameMap):
         if self.is_animating or self.jump_peak_time is not None:
             return
 
-        dx, dy = 0, 0
-        row, col = self._get_grid_pos()
+        move_dir = None
+        row, col = self.row, self.col
 
         curr_tile = map_obj.get_tile(row, col)
         tile_below = map_obj.get_tile(row + 1, col)
@@ -75,7 +81,6 @@ class Player(Entity):
 
         on_stable = self._on_solid_ground(map_obj)
         on_ladder = self._on_ladder(map_obj)
-
 
         if keys[pygame.K_a] or keys[pygame.K_q]:
             if self.facing_right:
@@ -91,38 +96,40 @@ class Player(Entity):
         if can_climb:
             if keys[pygame.K_s]:
                 if tile_below != GROUND:
-                    dy = TILE_SIZE
+                    move_dir = Direction.DOWN
             elif keys[pygame.K_w]:
                 if row > 0 and tile_above != GROUND:
-                    dy = -TILE_SIZE
+                    move_dir = Direction.UP
 
         if (on_stable or on_ladder) and (keys[pygame.K_a] or keys[pygame.K_d]):
-            direction = -1 if keys[pygame.K_a] else 1
-            new_col = col + direction
+            try_dir = Direction.LEFT if keys[pygame.K_a] else Direction.RIGHT
+            dr, dc = DIR_OFFSETS[try_dir]
+            new_col = col + dc
             tile_next = map_obj.get_tile(row, new_col)
 
             if 0 <= new_col < map_obj.width and tile_next != GROUND:
-                if dy == 0:
-                    dx = direction * TILE_SIZE
+                if move_dir is None:
+                    move_dir = try_dir
 
-        elif on_stable and dy == 0:
+        elif on_stable and move_dir is None:
             if keys[pygame.K_w] and tile_above != GROUND:
-                dy = -TILE_SIZE
+                move_dir = Direction.UP
                 self.is_jumping = True
 
             elif keys[pygame.K_q] or keys[pygame.K_e]:
-                direction = -1 if keys[pygame.K_q] else 1
-                target_c = col + direction
+                try_dir = Direction.UP_LEFT if keys[pygame.K_q] else Direction.UP_RIGHT
+                dr, dc = DIR_OFFSETS[try_dir]
+                target_c = col + dc
                 tile_targ = map_obj.get_tile(row - 1, target_c)
 
                 if tile_above != GROUND and tile_targ != GROUND and 0 <= target_c < map_obj.width:
-                    dx = direction * TILE_SIZE
-                    dy = -TILE_SIZE
+                    move_dir = try_dir
                     self.is_jumping = True
 
-        if dx != 0 or dy != 0:
-            self.target_x = self.x + dx
-            self.target_y = self.y + dy
+        if move_dir is not None:
+            dr, dc = DIR_OFFSETS[move_dir]
+            self.target_x = self.x + dc * TILE_SIZE
+            self.target_y = self.y + dr * TILE_SIZE
             self.is_animating = True
 
     def update(self, dt: float, map_obj: GameMap):
@@ -150,7 +157,7 @@ class Player(Entity):
                 self.jump_peak_time = None
             keys = pygame.key.get_pressed()
             if keys[pygame.K_w]:
-                row, col = self._get_grid_pos()
+                row, col = self.row, self.col
                 if map_obj.get_tile(row - 1, col) == LADDER:
                     self.jump_peak_time = None
                     self.target_y -= TILE_SIZE
@@ -158,7 +165,7 @@ class Player(Entity):
 
         else:
             if self._is_aligned_y():
-                row, col = self._get_grid_pos()
+                row, col = self.row, self.col
                 curr_tile = map_obj.get_tile(row, col)
                 tile_below = map_obj.get_tile(row + 1, col)
 

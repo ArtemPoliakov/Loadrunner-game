@@ -19,6 +19,7 @@ BLANK = "_"
 GROUND = "#"
 LADDER = "^"
 COIN = "$"
+START = "*"
 
 # SCREEN
 SCREEN_WIDTH = 840

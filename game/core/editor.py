@@ -2,6 +2,7 @@ import pygame
 import random
 from game.config import *
 from game.ui.components import Button, InputField, Dropdown
+from game.enums import MoveAxis, Direction, DIR_OFFSETS
 
 CURSOR_TOOL = "CURSOR"
 
@@ -101,64 +102,54 @@ class Editor:
         start_c = random.randint(2, cols - 3)
         start_r = random.randint(2, rows - 3)
 
-        floor_points = [(start_r, start_c)]
+        floor_points = {(start_r, start_c)}    # REFACTORED (Використання set замість list в editor)
 
-        grid[start_r][start_c] = BLANK
+        grid[start_r][start_c] = START
         # Player start
         self.lvl_mgr.set_player_start(start_r, start_c)
 
-        max_segments = 60
+        max_segments = 100
         curr_r, curr_c = start_r, start_c
 
-        for _ in range(max_segments):
+        for _ in range(max_segments):                  # REFACTORED (генерація рівнів → dict, dx, dy)
             # Weights: 70% Horizontal, 30% Vertical
-            move_type = random.choices(['horiz', 'vert'], weights=[70, 30], k=1)[0]
+            move_axis = random.choices(
+                [MoveAxis.HORIZONTAL, MoveAxis.VERTICAL],
+                weights=[70, 30],
+                k=1
+            )[0]
 
-            if move_type == 'horiz':
-                direction = random.choice([1, 3])
+            if move_axis == MoveAxis.HORIZONTAL:
+                direction = random.choice([Direction.RIGHT, Direction.LEFT])
                 length = random.randint(3, 8)
                 tile_to_place = BLANK
             else:
-                direction = random.choice([0, 2])
+                direction = random.choice([Direction.UP, Direction.DOWN])
                 length = random.randint(2, 5)
                 tile_to_place = LADDER
 
             for _ in range(length):
-                next_r, next_c = curr_r, curr_c
-                if direction == 0:
-                    next_r -= 1
-                elif direction == 1:
-                    next_c += 1
-                elif direction == 2:
-                    next_r += 1
-                elif direction == 3:
-                    next_c -= 1
+                dr, dc = DIR_OFFSETS[direction]
+                next_r = curr_r + dr
+                next_c = curr_c + dc
 
-                if 1 <= next_r < rows - 1 and 1 <= next_c < cols - 1:
-                    curr_r, curr_c = next_r, next_c
-
-                    if grid[curr_r][curr_c] != LADDER:
-                        grid[curr_r][curr_c] = tile_to_place
-
-                    if tile_to_place == LADDER:
-                        grid[curr_r][curr_c] = LADDER
-
-                    if grid[curr_r][curr_c] in [BLANK, LADDER]:
-                        floor_points.append((curr_r, curr_c))
-
-                    if tile_to_place == BLANK and random.random() < 0.05:
-                        if (curr_r, curr_c) != (start_r, start_c):
-                            grid[curr_r][curr_c] = COIN
-                else:
+                if not (1 <= next_r < rows - 1 and 1 <= next_c < cols - 1):
                     break
+
+                curr_r, curr_c = next_r, next_c
+
+                if grid[curr_r][curr_c] not in (LADDER, COIN):
+                    grid[curr_r][curr_c] = tile_to_place
+
+                floor_points.add((curr_r, curr_c))
+
+                if tile_to_place == BLANK and random.random() < 0.05:
+                    grid[curr_r][curr_c] = COIN
 
             # Branching
             if random.random() < 0.3 or curr_c <= 1 or curr_c >= cols - 2:
                 if floor_points:
-                    bg_point = random.choice(floor_points)
-                    curr_r, curr_c = bg_point
-
-        new_layout = ["".join(row) for row in grid]
+                    curr_r, curr_c = random.choice(list(floor_points))
 
         # Enemies
         self.lvl_mgr.get_current_level_enemies().clear()
@@ -167,10 +158,10 @@ class Editor:
         while enemies_placed < 4 and attempts < 200:
             er = random.randint(1, rows - 2)
             ec = random.randint(1, cols - 2)
-            tile = new_layout[er][ec]
+            tile = grid[er][ec]
             dist = abs(er - start_r) + abs(ec - start_c)
             if tile == BLANK and dist > 6:
-                if er + 1 < rows and new_layout[er + 1][ec] in [GROUND, LADDER]:
+                if er + 1 < rows and grid[er + 1][ec] in [GROUND, LADDER]:
                     self.lvl_mgr.add_enemy(er, ec)
                     enemies_placed += 1
             attempts += 1
@@ -178,9 +169,10 @@ class Editor:
         fb_val = 5
         try:
             fb_val = int(self.fb_input.text)
-        except:
+        except ValueError:
             pass
 
+        new_layout = ["".join(row) for row in grid]
         self.lvl_mgr.update_current_level(self.name_input.text, new_layout, fb_val)
 
     def _delete_level(self):
@@ -195,6 +187,13 @@ class Editor:
             fb_val = 5
         self.lvl_mgr.update_current_level(self.name_input.text, current_layout, fb_val)
         self.lvl_mgr.save_levels()
+        self._refresh_ui_data() # BUGFIX (Змінювати назву (в dropdown) рівня при збереженні)
+
+    def _get_fb_count_from_input(self):
+        try:
+            return int(self.fb_input.text)
+        except ValueError:
+            return 5
 
     def handle_input(self, event):
         if self.level_dropdown.handle_event(event): return

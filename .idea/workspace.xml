@@ -4,12 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="30011bfe-aee6-4676-8b3e-a5a10b7bb6ed" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/LodeRunnerGame.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/LodeRunnerGame.iml" afterDir="false" />
+    <list default="true" id="30011bfe-aee6-4676-8b3e-a5a10b7bb6ed" name="Changes" comment="Levels update">
+      <change afterPath="$PROJECT_DIR$/game/enums.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/core/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/core/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/core/editor.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/core/editor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/entities/enemy.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/entities/enemy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/entities/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/entities/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/levels.json" beforeDir="false" afterPath="$PROJECT_DIR$/game/levels.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +27,25 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="work" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;ArtemPoliakov&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ArtemPoliakov/Loadrunner-game.git&quot;,
+    &quot;accountId&quot;: &quot;103172ae-d49b-40e3-95ff-400333f231ee&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -37,14 +57,18 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.generate_assets.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_step1.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_step2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_step3.executor&quot;: &quot;Run&quot;,
     &quot;Python.utils.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/apoli/OneDrive/Desktop/coding_actual/Python/LodeRunnerGame&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/apoli/OneDrive/Desktop/coding_actual/Python/LodeRunnerGame/game/assets&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.editor&quot;
   }
 }</component>
@@ -53,8 +77,130 @@
       <recent name="C:\Users\apoli\OneDrive\Desktop\coding_actual\Python\LodeRunnerGame\game\assets" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\apoli\OneDrive\Desktop\coding_actual\Python\LodeRunnerGame\game\saves" />
       <recent name="C:\Users\apoli\OneDrive\Desktop\coding_actual\Python\LodeRunnerGame\game" />
     </key>
+  </component>
+  <component name="RunManager" selected="Python.main">
+    <configuration name="generate_assets" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LodeRunnerGame" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generate_assets.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LodeRunnerGame" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_step1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LodeRunnerGame" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_step1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_step2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LodeRunnerGame" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_step2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_step3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="LodeRunnerGame" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_step3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python.generate_assets" />
+        <item itemvalue="Python.test_step3" />
+        <item itemvalue="Python.test_step2" />
+        <item itemvalue="Python.test_step1" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -71,6 +217,66 @@
       <option name="presentableId" value="Default" />
       <updated>1761562302805</updated>
     </task>
+    <task id="LOCAL-00001" summary="records and pause added">
+      <option name="closed" value="true" />
+      <created>1764854766385</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1764854766385</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Pre-OOP version">
+      <option name="closed" value="true" />
+      <created>1766239582813</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1766239582813</updated>
+    </task>
+    <task id="LOCAL-00003" summary="OOP refactored + level editor">
+      <option name="closed" value="true" />
+      <created>1766311505763</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1766311505763</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Enemies with BFS, level procedural gen, fireball mechanics">
+      <option name="closed" value="true" />
+      <created>1766410101836</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1766410101836</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Levels update">
+      <option name="closed" value="true" />
+      <created>1766436056272</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1766436056272</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="records and pause added" />
+    <MESSAGE value="Pre-OOP version" />
+    <MESSAGE value="OOP refactored + level editor" />
+    <MESSAGE value="Enemies with BFS, level procedural gen, fireball mechanics" />
+    <MESSAGE value="Levels update" />
+    <option name="LAST_COMMIT_MESSAGE" value="Levels update" />
   </component>
 </project>

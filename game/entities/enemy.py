@@ -1,3 +1,5 @@
+import math
+
 import pygame
 import os
 from collections import deque
@@ -31,6 +33,7 @@ class Enemy(Entity):
     def update(self, dt: float, map_obj, player_pos):
         # Movement logic
         # Move X
+        # dx = self.move_speed * math.copysign(1, self.target_x - self.x)
         if self.x < self.target_x:
             self.x = min(self.x + self.move_speed, self.target_x)
             self.image = self.image_right
@@ -45,7 +48,8 @@ class Enemy(Entity):
             self.y = max(self.y - self.move_speed, self.target_y)
 
         # Decision-making
-        if abs(self.x - self.target_x) < 0.1 and abs(self.y - self.target_y) < 0.1:
+        # REFACTORED (Enemy: move: Спробувати прибрати 0.1 (замінити на 0))
+        if abs(self.x - self.target_x) == 0 and abs(self.y - self.target_y) == 0:
             curr_r, curr_c = self._get_grid_pos()
             target_r, target_c = player_pos
 
@@ -107,10 +111,10 @@ class Enemy(Entity):
                     if t_right != GROUND:
                         neighbors.append((r, c + 1))
 
-            for n in neighbors:
-                if n not in came_from:
-                    came_from[n] = curr
-                    q.append(n)
+            for neighbor in neighbors:
+                if neighbor not in came_from:
+                    came_from[neighbor] = curr
+                    q.append(neighbor)
 
         if not found:
             return None
